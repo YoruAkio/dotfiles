@@ -2,8 +2,6 @@
 
 A modern and minimalist Sway desktop environment with dynamic theming based on wallpapers.
 
-![Sway Desktop Environment](https://github.com/YoruAkio/dotfiles)
-
 ## ✨ Features
 
 - 🎨 **Dynamic color theming**: Automatically generates color schemes from wallpapers
