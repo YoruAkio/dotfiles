@@ -62,13 +62,20 @@ bindsym $mod+q kill
 bindsym $mod+Ctrl+q exec swaymsg kill
 
 # Wofi application launcher
-bindsym $mod+r exec wofi -c ~/.config/sway/wofi/config --show drun
+bindsym $mod+r exec wofi
+
+# Wofi emoji
+bindsym $mod+Alt+h exec wofi-emoji
+
+# Wallpaper controls
+bindsym $mod+Shift+w exec bash ~/.config/sway/scripts/select_wallpaper.sh
+bindsym $mod+Alt+w exec bash ~/.config/sway/scripts/random_wall.sh
 
 # File manager
 bindsym $mod+e exec $file_manager
 
 # Reload configuration without changing wallpaper
-bindsym $mod+Shift+r exec bash ~/.config/sway/scripts/random_wall.sh --reload-only
+bindsym $mod+Shift+r exec swaymsg reload
 
 # Screenshots
 bindsym Print exec grim
@@ -197,10 +204,6 @@ bindsym --locked XF86AudioMicMute exec pactl set-source-mute @DEFAULT_SOURCE@ to
 # Brightness controls
 bindsym --locked XF86MonBrightnessDown exec brightnessctl set 5%-
 bindsym --locked XF86MonBrightnessUp exec brightnessctl set 5%+
-
-# Wallpaper controls
-bindsym $mod+Shift+w exec bash ~/.config/sway/select_wallpaper.sh
-bindsym $mod+Alt+w exec bash ~/.config/sway/random_wall.sh
 
 # =============================================================================
 # INCLUDES
