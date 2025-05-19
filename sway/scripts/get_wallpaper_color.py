@@ -260,10 +260,8 @@ def write_wofi_config(wallpaper):
 # Generated on {os.popen('date').read().strip()}
 
 # Position and size
-width=400
-height=500
-x=0
-y=0
+width=650
+height=450
 location=center
 orientation=vertical
 halign=fill
@@ -274,7 +272,7 @@ show=drun
 prompt=
 normal_window=false
 layer=overlay
-term=alacritty
+term=kitty
 allow_images=true
 image_size=48
 insensitive=true
