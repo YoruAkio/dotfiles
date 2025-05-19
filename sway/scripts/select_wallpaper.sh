@@ -61,11 +61,7 @@ select_wallpaper() {
         --dmenu \
         --prompt="Select wallpaper:" \
         --width=$wofi_width \
-        --height=$wofi_height \
-        --x=$x_pos \
-        --y=$y_pos \
-        --show-images \
-        --image-size=200)
+        --height=$wofi_height)
     
     # Check if a wallpaper was selected
     if [[ -z "$selected" ]]; then
