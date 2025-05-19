@@ -134,7 +134,7 @@ install_required_packages() {
                 wf-recorder slurp grim brightnessctl jq swaybg \
                 ttf-font-awesome ttf-jetbrains-mono pavucontrol
             if command_exists yay; then
-                yay -S --noconfirm grimblast-git ttf-spacemono-nerd
+                yay -S --noconfirm grimblast-git ttf-spacemono-nerd wofi-emoji
             else
                 print_status "yay not found, skipping AUR packages" "warning"
             fi
@@ -152,6 +152,15 @@ install_required_packages() {
                 rm -rf /tmp/grimblast
             fi
             print_status "grimblast installed" "success"
+            
+            # Install wofi-emoji for Debian/Ubuntu
+            print_status "Installing wofi-emoji..." "info"
+            if [ ! -d "/tmp/wofi-emoji" ]; then
+                git clone https://github.com/Zeioth/wofi-emoji.git /tmp/wofi-emoji
+                (cd /tmp/wofi-emoji && sudo make install)
+                rm -rf /tmp/wofi-emoji
+            fi
+            print_status "wofi-emoji installed" "success"
             ;;
         fedora)
             sudo dnf install -y sway waybar kitty wofi python3 python3-pillow \
@@ -165,6 +174,15 @@ install_required_packages() {
                 rm -rf /tmp/grimblast
             fi
             print_status "grimblast installed" "success"
+            
+            # Install wofi-emoji for Fedora
+            print_status "Installing wofi-emoji..." "info"
+            if [ ! -d "/tmp/wofi-emoji" ]; then
+                git clone https://github.com/Zeioth/wofi-emoji.git /tmp/wofi-emoji
+                (cd /tmp/wofi-emoji && sudo make install)
+                rm -rf /tmp/wofi-emoji
+            fi
+            print_status "wofi-emoji installed" "success"
             ;;
         opensuse)
             sudo zypper install -n sway waybar kitty wofi python3 python3-Pillow \
@@ -177,6 +195,15 @@ install_required_packages() {
                 rm -rf /tmp/grimblast
             fi
             print_status "grimblast installed" "success"
+            
+            # Install wofi-emoji for openSUSE
+            print_status "Installing wofi-emoji..." "info"
+            if [ ! -d "/tmp/wofi-emoji" ]; then
+                git clone https://github.com/Zeioth/wofi-emoji.git /tmp/wofi-emoji
+                (cd /tmp/wofi-emoji && sudo make install)
+                rm -rf /tmp/wofi-emoji
+            fi
+            print_status "wofi-emoji installed" "success"
             ;;
         *)
             print_status "Unknown distribution. Please install required packages manually." "error"
