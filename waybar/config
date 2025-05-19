@@ -1,0 +1,89 @@
+{
+    "layer": "top",
+    "position": "top",
+    "height": 24,
+    "spacing": 0,
+    "margin-top": 0,
+    "margin-bottom": 0,
+    "modules-left": ["sway/workspaces", "sway/mode"],
+    "modules-center": ["sway/window"],
+    "modules-right": ["pulseaudio", "custom/separator", "network", "custom/separator", "cpu", "custom/separator", "memory", "custom/separator", "battery", "custom/separator", "clock", "tray"],
+    
+    "sway/workspaces": {
+        "disable-scroll": true,
+        "all-outputs": true,
+        "format": "{name}",
+        "format-icons": {
+            "1": "1",
+            "2": "2",
+            "3": "3",
+            "4": "4",
+            "5": "5",
+            "6": "6",
+            "7": "7",
+            "urgent": "",
+            "focused": "",
+            "default": ""
+        }
+    },
+    "sway/mode": {
+        "format": "<span style=\"italic\">{}</span>"
+    },
+    "sway/window": {
+        "format": "{title}",
+        "max-length": 50,
+        "rewrite": {
+            "(.*) - Mozilla Firefox": "🌐 $1",
+            "(.*) - Google Chrome": "🌐 $1",
+            "(.*) - Brave Browser": "🌐 $1",
+            "(.*) - Cursor": "💻 $1",
+            "(.*) - Code": "💻 $1"
+        }
+    },
+    "custom/separator": {
+        "format": "|",
+        "interval": "once",
+        "tooltip": false
+    },
+    "tray": {
+        "icon-size": 16,
+        "spacing": 5
+    },
+    "clock": {
+        "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
+        "format": "{:%d %b %H:%M}"
+    },
+    "cpu": {
+        "format": "CPU {usage}%",
+        "tooltip": false,
+        "interval": 2
+    },
+    "memory": {
+        "format": "MEM {percentage}%",
+        "interval": 2
+    },
+    "battery": {
+        "states": {
+            "good": 95,
+            "warning": 30,
+            "critical": 15
+        },
+        "format": "BAT {capacity}%",
+        "format-charging": "BAT {capacity}%",
+        "format-plugged": "BAT {capacity}%",
+        "tooltip": true
+    },
+    "network": {
+        "format-wifi": "WLAN {essid}",
+        "format-ethernet": "ETH {ipaddr}",
+        "tooltip-format": "{ifname}: {ipaddr}/{cidr}",
+        "format-linked": "ETH (No IP)",
+        "format-disconnected": "WLAN/ETH",
+        "format-alt": "{ifname}: {ipaddr}/{cidr}"
+    },
+    "pulseaudio": {
+        "format": "VOL {volume}%",
+        "format-muted": "VOL Muted",
+        "on-click": "pavucontrol"
+    }
+}

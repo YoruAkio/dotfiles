@@ -1,0 +1,75 @@
+/* Auto-generated wofi style from wallpaper: PlaneWall.png */
+/* Generated on Sen 19 Mei 2025 17:47:38 WIB */
+
+window {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px;
+    background-color: rgba(42, 59, 54, 0.85);
+    color: #ebebf5;
+    border: 2px solid #62877b;
+    border-radius: 15px;
+    margin: 5px;
+}
+
+#input {
+    margin: 5px;
+    background-color: rgba(50, 70, 64, 0.7);
+    color: #ebebf5;
+    border: 1px solid #546f66;
+    border-radius: 8px;
+    padding: 8px;
+}
+
+#outer-box {
+    margin: 5px;
+    padding: 15px;
+}
+
+#inner-box {
+    margin: 5px;
+    padding: 5px;
+    background-color: transparent;
+}
+
+#scroll {
+    margin: 0px;
+    padding: 5px;
+}
+
+#img {
+    margin-right: 10px;
+}
+
+#text {
+    margin: 5px;
+    padding: 5px;
+}
+
+#entry {
+    padding: 10px;
+    margin: 3px 0px;
+    border-radius: 10px;
+}
+
+#entry:selected {
+    background-color: rgba(98, 135, 123, 0.7);
+    color: #ebebf5;
+    border-radius: 10px;
+}
+
+#text:selected {
+    color: #ebebf5;
+    font-weight: bold;
+}
+
+/* For icon-focused view */
+.entry {
+    padding: 8px;
+}
+
+/* Improve icon display */
+#icon {
+    min-width: 48px;
+    min-height: 48px;
+    margin: 5px;
+}

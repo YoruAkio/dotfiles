@@ -1,0 +1,136 @@
+/* Import the colors generated from the wallpaper */
+@import url("colors.css");
+
+/* The rest of the styles use the imported color variables */
+
+* {
+    border: none;
+    border-radius: 0;
+    font-family: "JetBrains Mono", "Font Awesome 6 Free", monospace;
+    font-size: 12px;
+    min-height: 0;
+}
+
+window#waybar {
+    background: @bg;
+    color: @fg;
+    transition-property: background-color;
+    transition-duration: 0.5s;
+}
+
+window#waybar.hidden {
+    opacity: 0.2;
+}
+
+#workspaces button {
+    padding: 0 4px;
+    background-color: transparent;
+    color: @fg;
+    border-bottom: 2px solid transparent;
+}
+
+#workspaces button:hover {
+    background: rgba(0, 0, 0, 0.2);
+    box-shadow: inset 0 -2px @accent;
+}
+
+#workspaces button.focused {
+    background-color: rgba(255, 255, 255, 0.1);
+    box-shadow: inset 0 -2px @accent;
+}
+
+#workspaces button.urgent {
+    background-color: @warning;
+}
+
+#mode {
+    background-color: @bg;
+    border-bottom: 2px solid @accent;
+}
+
+#clock,
+#battery,
+#cpu,
+#memory,
+#network,
+#pulseaudio,
+#custom-media,
+#custom-separator,
+#tray,
+#mode,
+#window {
+    padding: 0 6px;
+    margin: 0 1px;
+    color: @fg;
+}
+
+#custom-separator {
+    color: @subtle;
+    font-size: 14px;
+    padding: 0 2px;
+    margin: 0;
+}
+
+#window {
+    font-weight: bold;
+}
+
+/* Module-specific styling */
+
+#battery.charging,
+#battery.plugged {
+    color: #26A65B;
+}
+
+#battery.critical:not(.charging) {
+    background-color: @critical;
+    color: @fg;
+    animation-name: blink;
+    animation-duration: 0.5s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
+
+#cpu {
+    border-bottom: 2px solid @accent;
+}
+
+#memory {
+    border-bottom: 2px solid @accent;
+}
+
+#network.disconnected {
+    color: @warning;
+}
+
+#pulseaudio.muted {
+    color: @warning;
+}
+
+/* Compact modules with no icons */
+#battery,
+#cpu,
+#memory,
+#network,
+#pulseaudio,
+#clock {
+    font-weight: bold;
+    padding: 0 4px;
+}
+
+@keyframes blink {
+    to {
+        background-color: @fg;
+        color: @bg;
+    }
+}
+
+#tray>.passive {
+    -gtk-icon-effect: dim;
+}
+
+#tray>.needs-attention {
+    -gtk-icon-effect: highlight;
+    background-color: @warning;
+}

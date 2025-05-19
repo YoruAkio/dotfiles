@@ -1,0 +1,29 @@
+# Auto-generated wofi configuration from wallpaper: PlaneWall.png
+# Generated on Sen 19 Mei 2025 17:47:38 WIB
+
+# Position and size
+width=400
+height=500
+x=0
+y=0
+location=center
+orientation=vertical
+halign=fill
+valign=center
+
+# Appearance
+show=drun
+prompt=
+normal_window=false
+layer=overlay
+term=alacritty
+allow_images=true
+image_size=48
+insensitive=true
+
+# Behavior
+allow_markup=true
+no_actions=true
+filter_rate=100
+key_expand=Tab
+sort_order=alphabetical

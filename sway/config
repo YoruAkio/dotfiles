@@ -1,0 +1,210 @@
+# Sway Configuration
+# Author: YoruAkio
+
+# =============================================================================
+# INITIALIZATION
+# =============================================================================
+
+# Include generated colors from wallpaper
+include ~/.config/sway/generated_colors.conf
+
+# Initialize wallpaper and theme
+# exec_always bash ~/.config/sway/random_wall.sh
+
+# =============================================================================
+# BASIC VARIABLES
+# =============================================================================
+
+# Mod key (Windows/Super key)
+set $mod Mod4
+
+# Direction keys (vim-style)
+set $left h
+set $down j
+set $up k
+set $right l
+
+# Applications
+set $term alacritty
+set $file_manager thunar
+
+# =============================================================================
+# APPEARANCE
+# =============================================================================
+
+# Set window gaps
+gaps inner 5
+smart_gaps off
+
+# Window borders
+default_border pixel 2
+
+# Remove title bar for specific applications
+for_window [app_id="cursor"], [class="Code"], [class="code-oss"], [class="Google-chrome"], [class="Brave-browser"], [class="min"] {
+    border pixel 2
+    titlebar off
+}
+
+# Status bar
+bar {
+    swaybar_command waybar
+}
+
+# =============================================================================
+# KEY BINDINGS - BASIC OPERATIONS & UTILITIES
+# =============================================================================
+
+# Terminal
+bindsym $mod+Return exec kitty
+
+# Kill focused window
+bindsym $mod+q kill
+bindsym $mod+Ctrl+q exec swaymsg kill
+
+# Wofi application launcher
+bindsym $mod+r exec wofi -c ~/.config/sway/wofi/config --show drun
+
+# File manager
+bindsym $mod+e exec $file_manager
+
+# Reload configuration without changing wallpaper
+bindsym $mod+Shift+r exec bash ~/.config/sway/scripts/random_wall.sh --reload-only
+
+# Screenshots
+bindsym Print exec grim
+bindsym $mod+Shift+s exec grimblast --notify --freeze copysave area
+
+# Record
+bindsym $mod+Ctrl+r exec bash ~/.config/sway/scripts/record_runner.sh
+
+# Exit sway
+bindsym $mod+Shift+q exec swaynag -t warning \
+    -m 'Do you want to exit Sway? This will end your Wayland session.' \
+    -B 'Yes, exit' 'swaymsg exit'
+
+# Floating window drag modifier
+floating_modifier $mod normal
+
+# =============================================================================
+# KEY BINDINGS - WINDOW MANAGEMENT
+# =============================================================================
+
+# Focus movement
+bindsym $mod+$left focus left
+bindsym $mod+$down focus down
+bindsym $mod+$up focus up
+bindsym $mod+$right focus right
+
+# Focus movement (arrow keys)
+bindsym $mod+Left focus left
+bindsym $mod+Down focus down
+bindsym $mod+Up focus up
+bindsym $mod+Right focus right
+
+# Window movement
+bindsym $mod+Shift+$left move left
+bindsym $mod+Shift+$down move down
+bindsym $mod+Shift+$up move up
+bindsym $mod+Shift+$right move right
+
+# Window movement (arrow keys)
+bindsym $mod+Shift+Left move left
+bindsym $mod+Shift+Down move down
+bindsym $mod+Shift+Up move up
+bindsym $mod+Shift+Right move right
+
+# Resizing mode
+mode "resize" {
+    # Resize with direction keys
+    bindsym $left resize shrink width 10px
+    bindsym $down resize grow height 10px
+    bindsym $up resize shrink height 10px
+    bindsym $right resize grow width 10px
+
+    # Resize with arrow keys
+    bindsym Left resize shrink width 10px
+    bindsym Down resize grow height 10px
+    bindsym Up resize shrink height 10px
+    bindsym Right resize grow width 10px
+
+    # Exit resize mode
+    bindsym Return mode "default"
+    bindsym Escape mode "default"
+}
+bindsym $mod+Alt+r mode "resize"
+
+# =============================================================================
+# KEY BINDINGS - WORKSPACES
+# =============================================================================
+
+# Switch to workspace
+bindsym $mod+1 workspace number 1
+bindsym $mod+2 workspace number 2
+bindsym $mod+3 workspace number 3
+bindsym $mod+4 workspace number 4
+bindsym $mod+5 workspace number 5
+bindsym $mod+6 workspace number 6
+bindsym $mod+7 workspace number 7
+bindsym $mod+8 workspace number 8
+bindsym $mod+9 workspace number 9
+bindsym $mod+0 workspace number 10
+
+# Move container to workspace
+bindsym $mod+Shift+1 move container to workspace number 1
+bindsym $mod+Shift+2 move container to workspace number 2
+bindsym $mod+Shift+3 move container to workspace number 3
+bindsym $mod+Shift+4 move container to workspace number 4
+bindsym $mod+Shift+5 move container to workspace number 5
+bindsym $mod+Shift+6 move container to workspace number 6
+bindsym $mod+Shift+7 move container to workspace number 7
+bindsym $mod+Shift+8 move container to workspace number 8
+bindsym $mod+Shift+9 move container to workspace number 9
+bindsym $mod+Shift+0 move container to workspace number 10
+
+# =============================================================================
+# KEY BINDINGS - LAYOUT CONTROL
+# =============================================================================
+
+# Split direction
+bindsym $mod+b splith
+bindsym $mod+v splitv
+
+# Layout styles
+bindsym $mod+s layout stacking
+# bindsym $mod+Alt+w layout tabbed
+bindsym $mod+Shift+e layout toggle split
+bindsym $mod+f fullscreen
+
+# Floating controls
+bindsym $mod+Shift+space floating toggle
+bindsym $mod+space focus mode_toggle
+bindsym $mod+a focus parent
+
+# Scratchpad
+bindsym $mod+Shift+minus move scratchpad
+bindsym $mod+minus scratchpad show
+
+# =============================================================================
+# KEY BINDINGS - SYSTEM CONTROLS
+# =============================================================================
+
+# Volume controls
+bindsym --locked XF86AudioMute exec pactl set-sink-mute @DEFAULT_SINK@ toggle
+bindsym --locked XF86AudioLowerVolume exec pactl set-sink-volume @DEFAULT_SINK@ -5%
+bindsym --locked XF86AudioRaiseVolume exec pactl set-sink-volume @DEFAULT_SINK@ +5%
+bindsym --locked XF86AudioMicMute exec pactl set-source-mute @DEFAULT_SOURCE@ toggle
+
+# Brightness controls
+bindsym --locked XF86MonBrightnessDown exec brightnessctl set 5%-
+bindsym --locked XF86MonBrightnessUp exec brightnessctl set 5%+
+
+# Wallpaper controls
+bindsym $mod+Shift+w exec bash ~/.config/sway/select_wallpaper.sh
+bindsym $mod+Alt+w exec bash ~/.config/sway/random_wall.sh
+
+# =============================================================================
+# INCLUDES
+# =============================================================================
+
+# Include system configs
+include /etc/sway/config.d/*
