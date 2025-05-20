@@ -8,8 +8,8 @@
 # Include generated colors from wallpaper
 include ~/.config/sway/generated_colors.conf
 
-# Initialize wallpaper and theme
-# exec_always bash ~/.config/sway/random_wall.sh
+# Initialize wallpaper
+exec_always bash ~/.config/sway/scripts/set_wall_on_startup.sh
 
 # =============================================================================
 # BASIC VARIABLES
