@@ -1,5 +1,5 @@
 # Auto-generated wofi configuration from wallpaper: PlaneWall.png
-# Generated on Sen 19 Mei 2025 19:43:13 WIB
+# Generated on Sel 20 Mei 2025 19:09:51 WIB
 
 # Position and size
 width=650
@@ -14,7 +14,7 @@ show=drun
 prompt=
 normal_window=false
 layer=overlay
-term=alacritty
+term=kitty
 allow_images=true
 image_size=48
 insensitive=true
