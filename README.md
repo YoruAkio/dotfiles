@@ -10,7 +10,26 @@ A modern and minimalist Sway desktop environment with dynamic theming based on w
 - 🎬 **Screen recording utilities**: Record full screen or selected areas with or without audio
 - 🔄 **Integrated configuration**: Cohesive theme across Sway, Waybar, Kitty terminal, and Wofi
 
-## 🚀 Installation
+## 🚀 Automated Installation (Recommended)
+
+You can use the included setup script to automate the entire installation process:
+
+```bash
+chmod +x setup.sh
+./setup.sh
+```
+
+This script will:
+- ✅ Detect your Linux distribution automatically
+- ✅ Install required dependencies based on your distribution
+- ✅ Back up your existing configurations
+- ✅ Set up symlinks to the dotfiles
+- ✅ Make scripts executable
+- ✅ Download initial wallpapers if the wallpaper folders are empty
+
+> 💡 **Tip**: The setup script is the recommended way to install these dotfiles as it handles all the steps automatically and provides feedback throughout the process.
+
+## 🚀 Manual Installation
 
 ### 1️⃣ Clone the repository
 
@@ -109,25 +128,6 @@ chmod +x ~/.config/sway/scripts/download_wallpapers.sh
 find ~/.config/sway/scripts -type f -name "*.sh" -exec chmod +x {} \;
 find ~/.config/sway/scripts -type f -name "*.py" -exec chmod +x {} \;
 ```
-
-### 7️⃣ Automated Installation (Recommended)
-
-You can use the included setup script to automate the entire installation process:
-
-```bash
-chmod +x setup.sh
-./setup.sh
-```
-
-This script will:
-- ✅ Detect your Linux distribution automatically
-- ✅ Install required dependencies based on your distribution
-- ✅ Back up your existing configurations
-- ✅ Set up symlinks to the dotfiles
-- ✅ Make scripts executable
-- ✅ Download initial wallpapers if the wallpaper folders are empty
-
-> 💡 **Tip**: The setup script is the recommended way to install these dotfiles as it handles all the steps automatically and provides feedback throughout the process.
 
 ## 🎮 Usage
 
