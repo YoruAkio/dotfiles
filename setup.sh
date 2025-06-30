@@ -221,10 +221,10 @@ install_required_packages() {
 # Function to clone the dotfiles repository
 clone_dotfiles() {
     local dotfiles_dir="$HOME/dotfiles"
-    
+    local repo_url="https://github.com/YoruAkio/dotfiles.git"
+
     if [ -d "$dotfiles_dir" ]; then
         print_status "Dotfiles directory already exists at $dotfiles_dir" "info"
-        
         read -p "$(echo -e ${YELLOW}${BOLD}"  [?]"${NC}" Do you want to update it? (y/n): ")" -n 1 -r
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -236,7 +236,7 @@ clone_dotfiles() {
         fi
     else
         print_task "Cloning dotfiles repository..."
-        git clone https://github.com/YoruAkio/dotfiles.git "$dotfiles_dir"
+        git clone "$repo_url" "$dotfiles_dir"
         if [ $? -eq 0 ]; then
             print_status "Dotfiles cloned successfully to $dotfiles_dir" "success"
         else
@@ -244,8 +244,8 @@ clone_dotfiles() {
             exit 1
         fi
     fi
-    
-    # Return the path to the actual configuration files
+
+    # Only echo the path, no status messages
     if [ -d "$dotfiles_dir/dotfiles" ]; then
         echo "$dotfiles_dir/dotfiles"
     else
@@ -253,88 +253,70 @@ clone_dotfiles() {
     fi
 }
 
-# Function to backup existing configs
+# Function to backup existing configs (backup in dotfiles root, not polluted path)
 backup_configs() {
     local dotfiles_path=$1
     local backup_dir="$dotfiles_path/backup/$(date +%Y%m%d_%H%M%S)"
-    
+
     print_task "Creating backup directory: $backup_dir"
     mkdir -p "$backup_dir"
-    
-    # Check and backup each config directory
+
     for config_dir in sway waybar kitty wofi; do
-        if [ -d "$HOME/.config/$config_dir" ]; then
-            print_task "Backing up existing ~/.config/$config_dir configuration..."
-            cp -r "$HOME/.config/$config_dir" "$backup_dir/"
+        if [ -d "$HOME/.config/$config_dir" ] || [ -L "$HOME/.config/$config_dir" ]; then
+            print_task "Backing up ~/.config/$config_dir to $backup_dir/$config_dir ..."
+            mv "$HOME/.config/$config_dir" "$backup_dir/" 2>/dev/null
             print_status "Backup of $config_dir created at $backup_dir/$config_dir" "success"
         else
             print_status "No existing ~/.config/$config_dir found, skipping backup" "info"
         fi
     done
-    
     print_status "All backups created successfully at $backup_dir" "success"
     echo "$backup_dir"
 }
 
-# Function to set up symlinks
+# Function to set up symlinks (always use correct ln -s syntax)
 setup_symlinks() {
     local dotfiles_path=$1
-    
     print_task "Setting up symlinks..."
-    
-    # Create .config directory if it doesn't exist
     mkdir -p "$HOME/.config"
-    
-    # Create directories for wallpapers and recordings
     mkdir -p "$HOME/.config/sway/walls"
     mkdir -p "$HOME/Videos/Screenrecorder"
-    
-    # Set up symlinks for each config directory
     for config_dir in sway waybar kitty wofi; do
-        if [ -L "$HOME/.config/$config_dir" ]; then
-            # If it's already a symlink, remove it
-            print_task "Removing existing symlink for $config_dir..."
-            rm "$HOME/.config/$config_dir"
-        elif [ -d "$HOME/.config/$config_dir" ]; then
-            # If it's a directory, it should have been backed up already
-            print_task "Removing existing directory for $config_dir..."
+        if [ -L "$HOME/.config/$config_dir" ] || [ -d "$HOME/.config/$config_dir" ]; then
+            print_task "Removing existing $config_dir from ~/.config ..."
             rm -rf "$HOME/.config/$config_dir"
         fi
-        
-        # Create the symlink
-        print_task "Creating symlink for $config_dir..."
+        print_task "Creating symlink for $config_dir ..."
         ln -s "$dotfiles_path/$config_dir" "$HOME/.config/$config_dir"
         print_status "Symlink created: $HOME/.config/$config_dir -> $dotfiles_path/$config_dir" "success"
     done
-    
     print_status "All symlinks created successfully" "success"
 }
 
-# Function to make scripts executable
+# Function to make scripts executable (check if scripts exist first)
 make_scripts_executable() {
     local dotfiles_path=$1
-    
     print_task "Making scripts executable..."
-    
-    # Make all scripts in sway/scripts executable
-    find "$dotfiles_path/sway/scripts" -type f -name "*.sh" -exec chmod +x {} \;
-    find "$dotfiles_path/sway/scripts" -type f -name "*.py" -exec chmod +x {} \;
-    
-    # Make download_wallpapers.sh executable
-    chmod +x "$dotfiles_path/sway/scripts/download_wallpapers.sh"
-    
-    print_status "All scripts are now executable" "success"
+    if [ -d "$dotfiles_path/sway/scripts" ]; then
+        find "$dotfiles_path/sway/scripts" -type f -name "*.sh" -exec chmod +x {} \;
+        find "$dotfiles_path/sway/scripts" -type f -name "*.py" -exec chmod +x {} \;
+        chmod +x "$dotfiles_path/sway/scripts/download_wallpapers.sh" 2>/dev/null
+        print_status "All scripts are now executable" "success"
+    else
+        print_status "No scripts directory found to make executable" "warning"
+    fi
 }
 
-# Function to download initial wallpapers
+# Function to download initial wallpapers (check if script exists first)
 download_wallpapers() {
     local dotfiles_path=$1
-    
     print_task "Downloading initial wallpapers..."
-    
-    "$dotfiles_path/sway/scripts/download_wallpapers.sh"
-    
-    print_status "Initial wallpapers downloaded" "success"
+    if [ -f "$dotfiles_path/sway/scripts/download_wallpapers.sh" ]; then
+        "$dotfiles_path/sway/scripts/download_wallpapers.sh"
+        print_status "Initial wallpapers downloaded" "success"
+    else
+        print_status "Wallpaper download script not found" "warning"
+    fi
 }
 
 # Function to display post-installation instructions
