@@ -134,7 +134,7 @@ install_required_packages() {
                 wf-recorder slurp grim brightnessctl jq swaybg \
                 ttf-font-awesome ttf-jetbrains-mono pavucontrol
             if command_exists yay; then
-                yay -S --noconfirm grimblast-git ttf-spacemono-nerd wofi-emoji
+                yay -S --noconfirm grimblast-git ttf-space-mono-nerd wofi-emoji
             else
                 print_status "yay not found, skipping AUR packages" "warning"
             fi
@@ -218,41 +218,6 @@ install_required_packages() {
     fi
 }
 
-# Function to clone the dotfiles repository
-clone_dotfiles() {
-    local dotfiles_dir="$HOME/dotfiles"
-    local repo_url="https://github.com/YoruAkio/dotfiles.git"
-
-    if [ -d "$dotfiles_dir" ]; then
-        print_status "Dotfiles directory already exists at $dotfiles_dir" "info"
-        read -p "$(echo -e ${YELLOW}${BOLD}"  [?]"${NC}" Do you want to update it? (y/n): ")" -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            print_task "Updating dotfiles repository..."
-            (cd "$dotfiles_dir" && git pull)
-            print_status "Dotfiles updated successfully" "success"
-        else
-            print_status "Using existing dotfiles directory" "info"
-        fi
-    else
-        print_task "Cloning dotfiles repository..."
-        git clone "$repo_url" "$dotfiles_dir"
-        if [ $? -eq 0 ]; then
-            print_status "Dotfiles cloned successfully to $dotfiles_dir" "success"
-        else
-            print_status "Failed to clone dotfiles" "error"
-            exit 1
-        fi
-    fi
-
-    # Only echo the path, no status messages
-    if [ -d "$dotfiles_dir/dotfiles" ]; then
-        echo "$dotfiles_dir/dotfiles"
-    else
-        echo "$dotfiles_dir"
-    fi
-}
-
 # Function to backup existing configs (backup in dotfiles root, not polluted path)
 backup_configs() {
     local dotfiles_path=$1
@@ -262,12 +227,16 @@ backup_configs() {
     mkdir -p "$backup_dir"
 
     for config_dir in sway waybar kitty wofi; do
-        if [ -d "$HOME/.config/$config_dir" ] || [ -L "$HOME/.config/$config_dir" ]; then
-            print_task "Backing up ~/.config/$config_dir to $backup_dir/$config_dir ..."
-            mv "$HOME/.config/$config_dir" "$backup_dir/" 2>/dev/null
+        local src="$HOME/.config/$config_dir"
+        if [ -e "$src" ]; then
+            print_task "Backing up $src to $backup_dir/$config_dir ..."
+            cp -aL "$src" "$backup_dir/"
             print_status "Backup of $config_dir created at $backup_dir/$config_dir" "success"
+            print_task "Removing original $src ..."
+            rm -rf "$src"
+            print_status "Removed original $src" "success"
         else
-            print_status "No existing ~/.config/$config_dir found, skipping backup" "info"
+            print_status "No existing $src found, skipping backup" "info"
         fi
     done
     print_status "All backups created successfully at $backup_dir" "success"
@@ -311,38 +280,72 @@ make_scripts_executable() {
 download_wallpapers() {
     local dotfiles_path=$1
     print_task "Downloading initial wallpapers..."
-    if [ -f "$dotfiles_path/sway/scripts/download_wallpapers.sh" ]; then
-        "$dotfiles_path/sway/scripts/download_wallpapers.sh"
-        print_status "Initial wallpapers downloaded" "success"
-    else
-        print_status "Wallpaper download script not found" "warning"
+    local walls_dir="$HOME/.config/sway/walls"
+    mkdir -p "$walls_dir"
+
+    # Check if there are any image files in the wallpaper directory
+    local image_count=$(find "$walls_dir" -maxdepth 1 -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' \) | wc -l)
+
+    if [ "$image_count" -eq 0 ]; then
+        print_task "No wallpapers found in $walls_dir. Downloading from GitHub..."
+        # List of wallpapers in the GitHub repo (update this list if you add/remove wallpapers)
+        local github_base="https://raw.githubusercontent.com/YoruAkio/dotfiles/main/sway/walls"
+        local wallpapers=(
+            "aaaa.jpg"
+            "bocch.jpg"
+            "bocch1.png"
+            "floresta.jpg"
+            "Gura-1.jpg"
+            "Gura-3.png"
+            "menhera.jpg"
+            "PlaneWall.png"
+            "princess.jpg"
+            "rezeNull.png"
+            "ruiva.png"
+            "wallhaven-9d9med.png"
+            "wallpaper4.png"
+        )
+        for wp in "${wallpapers[@]}"; do
+            local url="$github_base/$wp"
+            local target="$walls_dir/$wp"
+            print_task "Downloading $wp ..."
+            if command -v curl >/dev/null 2>&1; then
+                curl -fsSL "$url" -o "$target"
+            elif command -v wget >/dev/null 2>&1; then
+                wget -q "$url" -O "$target"
+            else
+                print_status "Neither curl nor wget is installed. Cannot download wallpapers." "error"
+                break
+            fi
+        done
+        print_status "Wallpapers downloaded from GitHub." "success"
     fi
 }
 
 # Function to display post-installation instructions
 show_post_install_instructions() {
     print_header "🎉 Installation Complete! 🎉" $GREEN
-    
     cat << EOF
 
-  ${BOLD}${CYAN}Next Steps:${NC}
+Next Steps:
 
-  1. ${BOLD}Log out and select Sway${NC} at the login screen
-  2. ${BOLD}Key Combinations:${NC}
-     • ${BOLD}Super + Return${NC}: Launch terminal
-     • ${BOLD}Super + r${NC}: Application launcher
-     • ${BOLD}Super + q${NC}: Close window
-     • ${BOLD}Super + Alt + w${NC}: Random wallpaper
-     • ${BOLD}Super + Shift + w${NC}: Select wallpaper
-     • ${BOLD}Super + Ctrl + r${NC}: Screen recording options
-     • ${BOLD}Print${NC}: Take screenshot
+1. Log out and select Sway at the login screen
+2. Key Combinations:
 
-  ${BOLD}${CYAN}Documentation:${NC}
-  
-  For full documentation and more information, please visit:
-  ${BOLD}https://github.com/YoruAkio/dotfiles${NC}
+  • Super + Return: Launch terminal
+  • Super + r: Application launcher
+  • Super + q: Close window
+  • Super + Alt + w: Random wallpaper
+  • Super + Shift + w: Select wallpaper
+  • Super + Ctrl + r: Screen recording options
+  • Print: Take screenshot
 
-  ${BOLD}${YELLOW}Note:${NC} If you encounter any issues, please check the README or open an issue on GitHub.
+Documentation:
+
+For full documentation and more information, please visit:
+https://github.com/YoruAkio/dotfiles
+
+Note: If you encounter any issues, please check the README or open an issue on GitHub.
 
 EOF
 }
@@ -364,9 +367,13 @@ install_base_dependencies $DISTRO
 print_header "Step 3: Installing Required Packages" $CYAN
 install_required_packages $DISTRO
 
-# Step 4: Clone dotfiles repository
+# Step 4: Set dotfiles path to current script directory
 print_header "Step 4: Setting Up Dotfiles" $CYAN
-DOTFILES_PATH=$(clone_dotfiles)
+DOTFILES_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -z "$DOTFILES_PATH" ]; then
+    print_status "Failed to determine dotfiles path. Exiting." "error"
+    exit 1
+fi
 print_status "Dotfiles path: $DOTFILES_PATH" "success"
 
 # Step 5: Backup existing configs
