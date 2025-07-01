@@ -335,18 +335,16 @@ def write_dunst_config(scheme, wallpaper):
     follow = mouse
 
     width = 200
-    height = 50
+    height = (50, 50)
     origin = top-right
     offset = 10
 
     indicate_hidden = yes
     shrink = no
     transparency = 80
-    notification_height = 0
     separator_height = 2
     padding = 10
     horizontal_padding = 12
-    vertical_padding = 10
     frame_width = 2
     frame_color = "#88c0d0"
     separator_color = frame
@@ -383,8 +381,6 @@ def write_dunst_config(scheme, wallpaper):
     always_run_script = true
     title = Dunst
     class = Dunst
-    startup_notification = false
-    verbosity = mesg
     corner_radius = 8
 
     # Mouse

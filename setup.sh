@@ -131,7 +131,7 @@ install_required_packages() {
     case $distro in
         arch)
             sudo pacman -S --noconfirm --needed sway waybar kitty wofi python python-pillow \
-                wf-recorder slurp grim brightnessctl jq swaybg \
+                wf-recorder slurp grim brightnessctl jq swww \
                 ttf-font-awesome ttf-jetbrains-mono pavucontrol
             if command_exists yay; then
                 yay -S --noconfirm grimblast-git ttf-space-mono-nerd wofi-emoji
@@ -142,7 +142,7 @@ install_required_packages() {
         debian)
             sudo apt update
             sudo apt install -y sway waybar kitty wofi python3 python3-pil \
-                brightnessctl jq swaybg fonts-font-awesome \
+                brightnessctl jq fonts-font-awesome \
                 fonts-jetbrains-mono pavucontrol grim slurp wf-recorder
             
             print_status "Building grimblast from source..." "info"
@@ -152,6 +152,15 @@ install_required_packages() {
                 rm -rf /tmp/grimblast
             fi
             print_status "grimblast installed" "success"
+            
+            # Install swww for Debian/Ubuntu
+            print_status "Building swww from source..." "info"
+            if [ ! -d "/tmp/swww" ]; then
+                git clone https://github.com/Horus645/swww.git /tmp/swww
+                (cd /tmp/swww && cargo build --release && sudo cp target/release/swww* /usr/local/bin/)
+                rm -rf /tmp/swww
+            fi
+            print_status "swww installed" "success"
             
             # Install wofi-emoji for Debian/Ubuntu
             print_status "Installing wofi-emoji..." "info"

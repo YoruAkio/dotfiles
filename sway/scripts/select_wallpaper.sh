@@ -1,8 +1,6 @@
 #!/bin/bash
 
-# Script to manually select a wallpaper 
-# This uses the wofi launcher on Sway
-
+# Script to manually select a wallpaper using swww with wofi launcher on Sway
 set -e
 
 # Define paths
@@ -13,7 +11,24 @@ CURRENT_WALLPAPER_FILE="$WALLS_DIR/.current"
 
 # Function to log with timestamp
 log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] SELECT: $1"
+}
+
+# Get random position on screen for wallpaper transition
+get_random_position() {
+    # Get screen resolution with fallback values
+    local width=$(swaymsg -t get_outputs | jq -r '.[0].current_mode.width // 1920')
+    local height=$(swaymsg -t get_outputs | jq -r '.[0].current_mode.height // 1080')
+    
+    # Use 10% margin from edges
+    local margin_x=$((width / 10))
+    local margin_y=$((height / 10))
+    
+    # Generate random coordinates
+    local x=$((RANDOM % (width - 2*margin_x) + margin_x))
+    local y=$((RANDOM % (height - 2*margin_y) + margin_y))
+    
+    echo "$x,$y"
 }
 
 # Function to select a wallpaper using wofi
@@ -24,15 +39,11 @@ select_wallpaper() {
         return 1
     fi
     
-    # Create a list of available wallpapers
-    local wallpapers=()
-    for file in "$WALLS_DIR"/*.{jpg,jpeg,png}; do
-        # Skip if no files match the pattern
-        [[ -f "$file" ]] || continue
-        wallpapers+=("$(basename "$file")")
-    done
+    # Check if wallpapers exist
+    shopt -s nullglob
+    local wallpapers=("$WALLS_DIR"/*.{jpg,jpeg,png})
+    shopt -u nullglob
     
-    # If no wallpapers found
     if [[ ${#wallpapers[@]} -eq 0 ]]; then
         log "No wallpapers found in $WALLS_DIR"
         log "Run sway/scripts/download_wallpapers.sh to download some wallpapers"
@@ -40,53 +51,42 @@ select_wallpaper() {
     fi
     
     # Get screen dimensions
-    local screen_width=$(swaymsg -t get_outputs | jq -r '.[0].current_mode.width')
-    local screen_height=$(swaymsg -t get_outputs | jq -r '.[0].current_mode.height')
+    local screen_width=$(swaymsg -t get_outputs | jq -r '.[0].current_mode.width // 1920')
+    local screen_height=$(swaymsg -t get_outputs | jq -r '.[0].current_mode.height // 1080')
     
-    # Set wofi window dimensions (30% of screen size)
+    # Set wofi dimensions (30% width, 50% height, with minimums)
     local wofi_width=$(( screen_width * 30 / 100 ))
     local wofi_height=$(( screen_height * 50 / 100 ))
-    
-    # Ensure minimum dimensions
-    if [ "$wofi_width" -lt 600 ]; then wofi_width=600; fi
-    if [ "$wofi_height" -lt 400 ]; then wofi_height=400; fi
-    
-    # Calculate center position
-    local x_pos=$(( (screen_width - wofi_width) / 2 ))
-    local y_pos=$(( (screen_height - wofi_height) / 2 ))
+    [[ $wofi_width -lt 600 ]] && wofi_width=600
+    [[ $wofi_height -lt 400 ]] && wofi_height=400
     
     # Create formatted entries with image previews
-    local formatted_entries=()
-    for wallpaper in "${wallpapers[@]}"; do
-        formatted_entries+=("img:$WALLS_DIR/$wallpaper:text:$wallpaper")
+    local entries=()
+    for file in "${wallpapers[@]}"; do
+        local filename=$(basename "$file")
+        entries+=("img:$file:text:$filename")
     done
     
-    # Use wofi to select a wallpaper with image previews
-    selected=$(printf "%s\n" "${formatted_entries[@]}" | wofi \
+    # Select wallpaper with wofi
+    local selected=$(printf "%s\n" "${entries[@]}" | wofi \
         --allow-images \
         --dmenu \
         --prompt="Select wallpaper:" \
         --width=$wofi_width \
         --height=$wofi_height)
     
-    # Check if a wallpaper was selected
-    if [[ -z "$selected" ]]; then
-        log "No wallpaper selected, exiting"
-        return 1
-    fi
+    [[ -z "$selected" ]] && return 1
     
     # Extract the filename from the selected entry
-    wallpaper_name=$(echo "$selected" | sed -E 's/img:.*:text:(.*)/\1/')
-    
-    # Return the full path to the selected wallpaper
+    local wallpaper_name=$(echo "$selected" | sed -E 's/img:.*:text:(.*)/\1/')
     echo "$WALLS_DIR/$wallpaper_name"
 }
 
-# Function to set a specific wallpaper and generate colors
+# Function to set wallpaper and apply theme
 set_wallpaper() {
     local wallpaper="$1"
     
-    # Check if the wallpaper exists
+    # Validate wallpaper
     if [[ ! -f "$wallpaper" ]]; then
         log "ERROR: Wallpaper $wallpaper does not exist"
         return 1
@@ -94,52 +94,45 @@ set_wallpaper() {
     
     log "Setting wallpaper: $wallpaper"
     
-    # Save the current wallpaper path
+    # Save current wallpaper path
     echo "$wallpaper" > "$CURRENT_WALLPAPER_FILE"
-    log "Saved current wallpaper path to $CURRENT_WALLPAPER_FILE"
     
     # Generate colors from wallpaper
     python3 "$WALLPAPER_SCRIPT" "$wallpaper"
     
-    # Kill any existing swaybg instances
-    pkill -f swaybg || true
-
-    # Kill any existing waybar instances
+    # Restart services for theme changes
     pkill -f waybar || true
-
-    # Kill any existing dunst instances to restart with new colors
     pkill -f dunst || true
-
-    # Reload kitty configuration
     pkill -SIGUSR1 kitty || true
     
-    # Set the wallpaper using swaybg directly (more reliable than swaymsg)
-    swaybg -i "$wallpaper" -m fill &
-    
-    # Also set it via swaymsg for compatibility
-    swaymsg output '*' bg "$wallpaper" fill
+    # Apply wallpaper with transition
+    local position=$(get_random_position)
+    swww img "$wallpaper" \
+        --transition-bezier .43,1.19,1,.4 \
+        --transition-type grow \
+        --transition-duration 1 \
+        --transition-fps 60 \
+        --transition-pos "$position"
 
-    # Reload sway config
-    log "Reloading sway config..."
+    # Allow transition to complete
+    sleep 1.2
+    
+    # Reload sway and restart services
+    log "Reloading sway configuration..."
     swaymsg reload
     
-    # Restart dunst to apply new colors
     sleep 0.5
     dunst &
     
     log "Wallpaper and theme applied successfully!"
 }
 
-# Main function
+# Main execution
 main() {
-    log "Starting manual wallpaper selection..."
+    log "Starting wallpaper selection..."
     
-    # Select a wallpaper
-    wallpaper=$(select_wallpaper)
-    
-    # Check if a wallpaper was selected
+    local wallpaper=$(select_wallpaper)
     if [[ -n "$wallpaper" ]]; then
-        # Set the wallpaper and generate colors
         set_wallpaper "$wallpaper"
     else
         log "No wallpaper selected, exiting"
@@ -147,5 +140,5 @@ main() {
     fi
 }
 
-# Run the main function
+# Run the script
 main

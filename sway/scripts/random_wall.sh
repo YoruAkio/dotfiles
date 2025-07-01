@@ -17,25 +17,42 @@ log() {
 
 # Check if this is a configuration reload or new wallpaper request
 is_reload_only() {
-    if [[ "$1" == "--reload-only" ]]; then
-        return 0
-    fi
-    return 1
+    [[ "$1" == "--reload-only" ]]
+}
+
+# Get random position on screen for wallpaper transition
+get_random_screen_position() {
+    # Get screen resolution
+    local screen_width=$(swaymsg -t get_outputs | jq -r '.[0].current_mode.width // 1920')
+    local screen_height=$(swaymsg -t get_outputs | jq -r '.[0].current_mode.height // 1080')
+    
+    # Set margins (10% from edges)
+    local margin_x=$((screen_width / 10))
+    local margin_y=$((screen_height / 10))
+    
+    # Calculate bounds
+    local min_x=$margin_x
+    local max_x=$((screen_width - margin_x))
+    local min_y=$margin_y
+    local max_y=$((screen_height - margin_y))
+    
+    # Generate random coordinates
+    local random_x=$((RANDOM % (max_x - min_x + 1) + min_x))
+    local random_y=$((RANDOM % (max_y - min_y + 1) + min_y))
+    
+    echo "${random_x},${random_y}"
 }
 
 # Check dependencies
 check_dependencies() {
     local missing_deps=()
     
-    for cmd in swaybg python3 waybar; do
-        if ! command -v "$cmd" >/dev/null 2>&1; then
-            missing_deps+=("$cmd")
-        fi
+    for cmd in swww python3 waybar jq; do
+        command -v "$cmd" >/dev/null 2>&1 || missing_deps+=("$cmd")
     done
     
     if [[ ${#missing_deps[@]} -gt 0 ]]; then
         log "ERROR: Missing dependencies: ${missing_deps[*]}"
-        log "Please install with 'sudo pacman -S ${missing_deps[*]}'"
         exit 1
     fi
     
@@ -49,105 +66,86 @@ check_dependencies() {
 # Get the current wallpaper or select a new random one
 get_wallpaper() {
     local reload_only=$1
-    local wallpaper=""
     
     # If reload only and current wallpaper exists, use it
     if [[ "$reload_only" == "true" ]] && [[ -f "$CURRENT_WALLPAPER_FILE" ]]; then
-        wallpaper=$(cat "$CURRENT_WALLPAPER_FILE")
-        if [[ -f "$wallpaper" ]]; then
-            log "Using existing wallpaper: $wallpaper"
+        local current_wallpaper=$(cat "$CURRENT_WALLPAPER_FILE")
+        if [[ -f "$current_wallpaper" ]]; then
+            log "Using existing wallpaper: $current_wallpaper"
             return 0
-        else
-            log "Saved wallpaper not found, selecting new one"
         fi
+        log "Saved wallpaper not found, selecting new one"
     fi
     
-    # Run the Python script to select a random wallpaper and generate color themes
-    wallpaper=$(python3 "$WALLPAPER_SCRIPT")
-    if [ $? -ne 0 ] || [ -z "$wallpaper" ]; then
-        log "Error selecting wallpaper. Using fallback wallpaper."
-        # Use a fallback image if the Python script fails
+    # Select a new wallpaper and generate color themes
+    local wallpaper=$(python3 "$WALLPAPER_SCRIPT")
+    if [[ $? -ne 0 || -z "$wallpaper" ]]; then
+        log "Error selecting wallpaper. Using fallback."
         wallpaper="/usr/share/backgrounds/sway/Sway_Wallpaper_Blue_1920x1080.png"
     fi
     
     # Save the current wallpaper path
     echo "$wallpaper" > "$CURRENT_WALLPAPER_FILE"
-    log "Saved current wallpaper path to $CURRENT_WALLPAPER_FILE"
+    log "Selected wallpaper: $wallpaper"
     
-    WALLPAPER=$wallpaper
-    
-    # Wait for color configuration files to be written
+    # Wait for color configuration files
     for i in {1..10}; do
         if [[ -f "$SWAY_COLOR_CONFIG" && -f "$WAYBAR_COLOR_CONFIG" ]]; then
-            log "Color configurations generated successfully"
+            log "Color configurations generated"
             break
         fi
-        if [[ $i -eq 10 ]]; then
-            log "WARNING: Timeout waiting for color configuration files"
-        fi
+        [[ $i -eq 10 ]] && log "WARNING: Timeout waiting for color files"
         sleep 0.2
     done
-    
-    return 0
 }
 
 # Set the wallpaper
 set_wallpaper() {
-    WALLPAPER=$(cat "$CURRENT_WALLPAPER_FILE")
-    log "Setting wallpaper: $WALLPAPER"
+    local wallpaper=$(cat "$CURRENT_WALLPAPER_FILE")
+    local random_pos=$(get_random_screen_position)
     
-    # Kill any existing swaybg instances
-    pkill -f swaybg || true
+    log "Setting wallpaper: $wallpaper"
     
-    # Set the wallpaper using swaybg directly (more reliable than swaymsg)
-    swaybg -i "$WALLPAPER" -m fill &
-    
-    # Also set it via swaymsg for compatibility
-    swaymsg output '*' bg "$WALLPAPER" fill
-    
-    log "Wallpaper set successfully"
+    # Set the wallpaper using swww with smooth transition
+    swww img "$wallpaper" \
+        --transition-bezier .43,1.19,1,.4 \
+        --transition-type grow \
+        --transition-duration 1 \
+        --transition-fps 60 \
+        --transition-pos "$random_pos"
 }
 
-# Reload sway config
-reload_sway() {
-    log "Reloading sway config..."
-    swaymsg reload
-
-    # Reload kitty configuration
-    pkill -SIGUSR1 kitty || true
+# Reload configurations
+reload_configs() {
+    log "Reloading configurations..."
     
-    # Restart dunst to apply new colors
-    pkill -f dunst || true
+    # Reload sway
+    swaymsg reload
+    
+    # Reload kitty if running
+    pkill -SIGUSR1 kitty 2>/dev/null || true
+    
+    # Restart dunst
+    pkill -f dunst 2>/dev/null || true
     sleep 0.5
     dunst &
-    
-    log "Reloaded sway config and restarted dunst"
 }
 
 # Main function
 main() {
     local reload_only=false
+    is_reload_only "$1" && reload_only=true
     
-    # Check if this is a reload-only request
-    if is_reload_only "$1"; then
-        reload_only=true
-        log "Configuration reload only, keeping current wallpaper"
-    else
-        log "Starting wallpaper and theme generation..."
-    fi
+    log "$([ "$reload_only" = true ] && echo "Reloading configuration only" || echo "Changing wallpaper and theme")"
     
-    # Check dependencies
     check_dependencies
-    
-    # Get the wallpaper (new or existing)
     get_wallpaper "$reload_only"
-    
-    # Set the wallpaper
     set_wallpaper
     
-    # Reload sway config
-    reload_sway
+    # Give time for wallpaper to apply
+    sleep 1
     
+    reload_configs
     log "Theme application complete!"
 }
 
