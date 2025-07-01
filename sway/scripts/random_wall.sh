@@ -112,6 +112,16 @@ set_wallpaper() {
 reload_sway() {
     log "Reloading sway config..."
     swaymsg reload
+
+    # Reload kitty configuration
+    pkill -SIGUSR1 kitty || true
+    
+    # Restart dunst to apply new colors
+    pkill -f dunst || true
+    sleep 0.5
+    dunst &
+    
+    log "Reloaded sway config and restarted dunst"
 }
 
 # Main function

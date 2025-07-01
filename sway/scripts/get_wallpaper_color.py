@@ -3,6 +3,7 @@ import os
 import random
 import sys
 import colorsys
+import glob
 from PIL import Image
 
 # Configuration paths
@@ -12,10 +13,17 @@ CONFIG_SNIPPET = os.path.join(SWAY_CONFIG_DIR, 'generated_colors.conf')
 WAYBAR_CSS_VARS = os.path.expanduser('~/.config/waybar/colors.css')
 WOFI_CSS = os.path.expanduser('~/.config/wofi/style.css')
 WOFI_CONFIG = os.path.expanduser('~/.config/wofi/config')
+DUNST_CONFIG = os.path.expanduser('~/.config/dunst/dunstrc')
 CURRENT_WALLPAPER_FILE = os.path.join(WALLS_DIR, '.current')
 
 def get_colors_from_image(image_path, num_colors=10):
-    """Extract colors from an image using color quantization."""
+    """Extract colors from an imag    # Write configuration files
+    success = write_sway_config(color_scheme, wallpaper) and \
+              write_waybar_css(color_scheme, wallpaper) and \
+              write_wofi_css(color_scheme, wallpaper) and \
+              write_wofi_config(wallpaper) and \
+              write_kitty_colors(color_scheme, wallpaper) and \
+              write_dunst_config(color_scheme, wallpaper)g color quantization."""
     try:
         # Open image and convert to RGB
         img = Image.open(image_path)
@@ -285,6 +293,183 @@ sort_order=alphabetical
         return False
     return True
 
+def write_dunst_config(scheme, wallpaper):
+    """Write dunst notification color configuration."""
+    try:
+        import re
+        
+        # Clean up any existing backup files
+        backup_pattern = f"{DUNST_CONFIG}.backup*"
+        import glob
+        for backup_file in glob.glob(backup_pattern):
+            try:
+                os.remove(backup_file)
+                print(f"Removed old backup: {backup_file}", file=sys.stderr)
+            except:
+                pass
+        
+        # Read the existing dunst config to preserve non-color settings
+        existing_config = ""
+        if os.path.exists(DUNST_CONFIG):
+            with open(DUNST_CONFIG, 'r') as f:
+                content = f.read()
+                # Remove all old header comments (lines starting with # Auto-generated)
+                lines = content.split('\n')
+                filtered_lines = []
+                skip_header = True
+                for line in lines:
+                    if line.startswith('# Auto-generated') or line.startswith('# Generated on'):
+                        continue
+                    elif line.strip() == '' and skip_header:
+                        continue
+                    else:
+                        skip_header = False
+                        filtered_lines.append(line)
+                existing_config = '\n'.join(filtered_lines)
+        
+        # Create base config if it doesn't exist or is empty
+        if not existing_config.strip():
+            existing_config = """[global]
+    # Display
+    monitor = 0
+    follow = mouse
+
+    width = 200
+    height = 50
+    origin = top-right
+    offset = 10
+
+    indicate_hidden = yes
+    shrink = no
+    transparency = 80
+    notification_height = 0
+    separator_height = 2
+    padding = 10
+    horizontal_padding = 12
+    vertical_padding = 10
+    frame_width = 2
+    frame_color = "#88c0d0"
+    separator_color = frame
+    sort = yes
+    idle_threshold = 120
+    gap_size = 10
+
+    # Text
+    font = SpaceMono Nerd Font Mono 12
+    line_height = 0
+    markup = full
+    format = "<b>%s</b>\\n%b"
+    alignment = left
+    show_age_threshold = 60
+    word_wrap = yes
+    ellipsize = middle
+    ignore_newline = no
+    stack_duplicates = true
+    hide_duplicate_count = false
+    show_indicators = yes
+
+    # Icons
+    icon_position = left
+    max_icon_size = 32
+    icon_path = /usr/share/icons/gnome/16x16/status/:/usr/share/icons/gnome/16x16/devices/
+
+    # History
+    sticky_history = yes
+    history_length = 20
+
+    # Misc/Advanced
+    dmenu = /usr/bin/dmenu -p dunst:
+    browser = /usr/bin/firefox -new-tab
+    always_run_script = true
+    title = Dunst
+    class = Dunst
+    startup_notification = false
+    verbosity = mesg
+    corner_radius = 8
+
+    # Mouse
+    mouse_left_click = close_current
+    mouse_middle_click = do_action
+    mouse_right_click = close_all
+
+[experimental]
+    per_monitor_dpi = false"""
+
+        # Update the frame_color in [global] section with generated colors
+        existing_config = re.sub(
+            r'(\s*frame_color\s*=\s*)["\']?[^#\n]*#[a-fA-F0-9]{6}["\']?',
+            f'\\1{scheme["accent"]}',
+            existing_config
+        )
+        
+        # Create better, more readable colors for different urgency levels
+        def adjust_dunst_color(base_rgb, lightness_factor=1.0, saturation_factor=1.0):
+            """Adjust colors specifically for dunst readability"""
+            r, g, b = [int(base_rgb[i:i+2], 16) for i in (1, 3, 5)]
+            r, g, b = [x/255.0 for x in (r, g, b)]
+            h, l, s = colorsys.rgb_to_hls(r, g, b)
+            
+            l = max(0, min(1, l * lightness_factor))
+            s = max(0, min(1, s * saturation_factor))
+            
+            r, g, b = colorsys.hls_to_rgb(h, l, s)
+            return '#{:02x}{:02x}{:02x}'.format(int(r*255), int(g*255), int(b*255))
+        
+        # Create more subtle and readable color variations
+        # Low urgency - very subtle, low contrast
+        low_bg = adjust_dunst_color(scheme['bg'], lightness_factor=0.9, saturation_factor=0.6)
+        low_fg = scheme['fg']  # Keep text readable
+        
+        # Normal urgency - moderate visibility  
+        normal_bg = adjust_dunst_color(scheme['dark'], lightness_factor=1.1, saturation_factor=0.8)
+        normal_fg = scheme['fg']
+        normal_frame = adjust_dunst_color(scheme['accent'], lightness_factor=0.9, saturation_factor=0.9)
+        
+        # Critical urgency - high visibility but not harsh
+        critical_bg = adjust_dunst_color(scheme['warning'], lightness_factor=0.7, saturation_factor=0.8)
+        critical_fg = scheme['fg']
+        critical_frame = adjust_dunst_color(scheme['critical'], lightness_factor=0.8, saturation_factor=0.9)
+        
+        # Remove existing urgency sections
+        existing_config = re.sub(r'\[urgency_low\][^[]*(?=\[|\Z)', '', existing_config, flags=re.DOTALL)
+        existing_config = re.sub(r'\[urgency_normal\][^[]*(?=\[|\Z)', '', existing_config, flags=re.DOTALL)
+        existing_config = re.sub(r'\[urgency_critical\][^[]*(?=\[|\Z)', '', existing_config, flags=re.DOTALL)
+        
+        # Add new urgency sections at the end
+        urgency_sections = f"""
+
+[urgency_low]
+    background = "{low_bg}"
+    foreground = "{low_fg}"
+    timeout = 10
+
+[urgency_normal]
+    background = "{normal_bg}"
+    foreground = "{normal_fg}"
+    frame_color = "{normal_frame}"
+    timeout = 10
+
+[urgency_critical]
+    background = "{critical_bg}"
+    foreground = "{critical_fg}"
+    frame_color = "{critical_frame}"
+    timeout = 0
+"""
+        
+        # Add header comment (single, clean header)
+        header_comment = f"# Auto-generated dunst colors from wallpaper: {os.path.basename(wallpaper)}\n\n"
+        
+        # Write the updated config
+        os.makedirs(os.path.dirname(DUNST_CONFIG), exist_ok=True)
+        with open(DUNST_CONFIG, 'w') as f:
+            f.write(header_comment + existing_config.rstrip() + urgency_sections)
+        
+        print(f"Generated dunst config at {DUNST_CONFIG}", file=sys.stderr)
+        return True
+    except Exception as e:
+        print(f"Error writing dunst config: {e}", file=sys.stderr)
+        return False
+
 def write_kitty_colors(scheme, wallpaper):
     """Write kitty color configuration matching the example aesthetic with darker pastel backgrounds."""
     try:
@@ -516,6 +701,7 @@ def main():
               write_waybar_css(color_scheme, wallpaper) and \
               write_wofi_css(color_scheme, wallpaper) and \
               write_wofi_config(wallpaper) and \
+              write_dunst_config(color_scheme, wallpaper) and \
               write_kitty_colors(color_scheme, wallpaper)
     
     # Save the wallpaper path to the current wallpaper file

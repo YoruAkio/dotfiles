@@ -107,6 +107,9 @@ set_wallpaper() {
     # Kill any existing waybar instances
     pkill -f waybar || true
 
+    # Kill any existing dunst instances to restart with new colors
+    pkill -f dunst || true
+
     # Reload kitty configuration
     pkill -SIGUSR1 kitty || true
     
@@ -119,6 +122,10 @@ set_wallpaper() {
     # Reload sway config
     log "Reloading sway config..."
     swaymsg reload
+    
+    # Restart dunst to apply new colors
+    sleep 0.5
+    dunst &
     
     log "Wallpaper and theme applied successfully!"
 }
