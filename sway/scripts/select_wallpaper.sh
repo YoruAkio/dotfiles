@@ -55,8 +55,14 @@ select_wallpaper() {
     local x_pos=$(( (screen_width - wofi_width) / 2 ))
     local y_pos=$(( (screen_height - wofi_height) / 2 ))
     
-    # Use wofi to select a wallpaper with calculated center position and image preview
-    selected=$(printf "%s\n" "${wallpapers[@]}" | wofi \
+    # Create formatted entries with image previews
+    local formatted_entries=()
+    for wallpaper in "${wallpapers[@]}"; do
+        formatted_entries+=("img:$WALLS_DIR/$wallpaper:text:$wallpaper")
+    done
+    
+    # Use wofi to select a wallpaper with image previews
+    selected=$(printf "%s\n" "${formatted_entries[@]}" | wofi \
         --allow-images \
         --dmenu \
         --prompt="Select wallpaper:" \
@@ -69,8 +75,11 @@ select_wallpaper() {
         return 1
     fi
     
+    # Extract the filename from the selected entry
+    wallpaper_name=$(echo "$selected" | sed -E 's/img:.*:text:(.*)/\1/')
+    
     # Return the full path to the selected wallpaper
-    echo "$WALLS_DIR/$selected"
+    echo "$WALLS_DIR/$wallpaper_name"
 }
 
 # Function to set a specific wallpaper and generate colors
@@ -97,6 +106,9 @@ set_wallpaper() {
 
     # Kill any existing waybar instances
     pkill -f waybar || true
+
+    # Reload kitty configuration
+    pkill -SIGUSR1 kitty || true
     
     # Set the wallpaper using swaybg directly (more reliable than swaymsg)
     swaybg -i "$wallpaper" -m fill &
