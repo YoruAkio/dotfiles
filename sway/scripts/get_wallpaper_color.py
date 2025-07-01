@@ -111,7 +111,6 @@ def write_sway_config(scheme, wallpaper):
     try:
         with open(CONFIG_SNIPPET, 'w') as f:
             f.write(f'''# Auto-generated colors from wallpaper: {os.path.basename(wallpaper)}
-# Generated on {os.popen('date').read().strip()}
 
 # Client colors derived from wallpaper
 client.focused          {scheme['accent']} {scheme['dark']} {scheme['fg']} {scheme['accent']} {scheme['dark']}
@@ -146,7 +145,6 @@ def write_waybar_css(scheme, wallpaper):
     try:
         with open(WAYBAR_CSS_VARS, 'w') as f:
             f.write(f'''/* Auto-generated colors from wallpaper: {os.path.basename(wallpaper)} */
-/* Generated on {os.popen('date').read().strip()} */
 @define-color bg {scheme['bg']};
 @define-color dark {scheme['dark']};
 @define-color fg {scheme['fg']};
@@ -168,7 +166,6 @@ def write_wofi_css(scheme, wallpaper):
             
         with open(WOFI_CSS, 'w') as f:
             f.write(f'''/* Auto-generated wofi style from wallpaper: {os.path.basename(wallpaper)} */
-/* Generated on {os.popen('date').read().strip()} */
 
 window {{
     font-family: "JetBrains Mono", monospace;
@@ -257,7 +254,6 @@ def write_wofi_config(wallpaper):
             
         with open(WOFI_CONFIG, 'w') as f:
             f.write(f'''# Auto-generated wofi configuration from wallpaper: {os.path.basename(wallpaper)}
-# Generated on {os.popen('date').read().strip()}
 
 # Position and size
 width=650
@@ -435,7 +431,6 @@ def write_kitty_colors(scheme, wallpaper):
 
         with open(kitty_config, 'w') as f:
             f.write(f"""# Auto-generated kitty colors from wallpaper: {os.path.basename(wallpaper)}
-# Generated on {os.popen('date').read().strip()}
 # Background brightness: {'dark' if bg_is_dark else 'light'}
 
 foreground   {rgb_to_hex(fg)}
