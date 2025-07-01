@@ -20,6 +20,7 @@ chmod +x setup.sh
 ```
 
 This script will:
+
 - ✅ Detect your Linux distribution automatically
 - ✅ Install required dependencies based on your distribution
 - ✅ Back up your existing configurations
@@ -47,7 +48,7 @@ cd dotfiles
 ```bash
 # Install main packages
 sudo pacman -S sway waybar kitty wofi python python-pillow wf-recorder slurp grim \
-               brightnessctl jq swaybg ttf-font-awesome ttf-jetbrains-mono pavucontrol
+               brightnessctl jq swww ttf-font-awesome ttf-jetbrains-mono pavucontrol
 
 # Install AUR packages
 yay -S grimblast-git ttf-spacemono-nerd
@@ -61,7 +62,7 @@ paru -S grimblast-git ttf-spacemono-nerd
 # Install main packages
 sudo apt update
 sudo apt install -y sway waybar kitty wofi python3 python3-pil brightnessctl \
-                    jq swaybg fonts-font-awesome fonts-jetbrains-mono pavucontrol \
+                    jq fonts-font-awesome fonts-jetbrains-mono pavucontrol \
                     grim slurp wf-recorder
 
 # You may need to manually install some packages not available in repositories
@@ -69,12 +70,18 @@ sudo apt install -y sway waybar kitty wofi python3 python3-pil brightnessctl \
 git clone https://github.com/hyprwm/grimblast.git
 cd grimblast
 sudo make install
+
+# For swww (wallpaper daemon), you can build from source:
+git clone https://github.com/Horus645/swww.git
+cd swww
+cargo build --release
+sudo cp target/release/swww* /usr/local/bin/
 ```
 
 #### 🐧 Fedora
 
 ```bash
-# Install main packages  
+# Install main packages
 sudo dnf install -y sway waybar kitty wofi python3 python3-pillow wf-recorder \
                    slurp grim brightnessctl jq fontawesome-fonts \
                    jetbrains-mono-fonts pavucontrol
@@ -167,10 +174,13 @@ Place your wallpaper images (JPG, PNG) in `~/.config/sway/walls/`
 ## 🧩 Components
 
 ### 🪟 Sway
+
 The core window manager with tiling capabilities and keyboard-centric design.
 
 ### 📊 Waybar
+
 A highly customizable status bar displaying:
+
 - Workspaces
 - Window title
 - Volume level
@@ -181,19 +191,24 @@ A highly customizable status bar displaying:
 - System tray
 
 ### 🐱 Kitty
+
 A fast terminal emulator with GPU acceleration and custom color themes synced to the wallpaper.
 
 ### 🔍 Wofi
+
 A simple application launcher with a clean interface that matches the overall theme.
 
 ### 🎨 Dynamic Color Generation
+
 - `get_wallpaper_color.py` extracts colors from wallpapers and generates consistent themes
 - Colors are applied to Sway, Waybar, Kitty terminal, and Wofi
 
 ## ⚠️ Troubleshooting
 
 ### 🎨 No Wallpaper Colors
+
 If wallpaper colors aren't applying:
+
 ```bash
 # Check if the Python script is executable
 chmod +x ~/.config/sway/scripts/get_wallpaper_color.py
@@ -203,7 +218,9 @@ pip install pillow  # or pip3 install pillow
 ```
 
 ### 🎬 Screen Recording Issues
+
 If screen recording doesn't work:
+
 ```bash
 # Check if wf-recorder is installed
 # For Arch:
@@ -212,7 +229,7 @@ sudo pacman -S wf-recorder
 # For Debian/Ubuntu:
 sudo apt install wf-recorder
 
-# Check if the scripts are executable  
+# Check if the scripts are executable
 chmod +x ~/.config/sway/scripts/record_runner.sh
 chmod +x ~/.config/sway/scripts/record/*.sh
 ```
