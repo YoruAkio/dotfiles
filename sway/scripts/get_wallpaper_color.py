@@ -334,19 +334,19 @@ def write_dunst_config(scheme, wallpaper):
     monitor = 0
     follow = mouse
 
-    width = 200
-    height = (50, 50)
+    width = 400
+    height = (100, 400)
     origin = top-right
     offset = 10
 
     indicate_hidden = yes
-    shrink = no
+    shrink = yes
     transparency = 80
     separator_height = 2
-    padding = 10
-    horizontal_padding = 12
+    padding = 12
+    horizontal_padding = 15
     frame_width = 2
-    frame_color = "#88c0d0"
+    # frame_color = "#88c0d0"
     separator_color = frame
     sort = yes
     idle_threshold = 120
@@ -354,7 +354,7 @@ def write_dunst_config(scheme, wallpaper):
 
     # Text
     font = SpaceMono Nerd Font Mono 12
-    line_height = 0
+    line_height = 4
     markup = full
     format = "<b>%s</b>\\n%b"
     alignment = left
@@ -368,7 +368,7 @@ def write_dunst_config(scheme, wallpaper):
 
     # Icons
     icon_position = left
-    max_icon_size = 32
+    max_icon_size = 64
     icon_path = /usr/share/icons/gnome/16x16/status/:/usr/share/icons/gnome/16x16/devices/
 
     # History
@@ -384,9 +384,8 @@ def write_dunst_config(scheme, wallpaper):
     corner_radius = 8
 
     # Mouse
-    mouse_left_click = close_current
-    mouse_middle_click = do_action
-    mouse_right_click = close_all
+    mouse_left_click = do_action
+    mouse_right_click = close_current
 
 [experimental]
     per_monitor_dpi = false"""

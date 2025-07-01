@@ -127,6 +127,7 @@ reload_configs() {
     
     # Restart dunst
     pkill -f dunst 2>/dev/null || true
+    pkill -f swaync 2>/dev/null || true
     sleep 0.5
     dunst &
 }

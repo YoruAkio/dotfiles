@@ -103,6 +103,7 @@ set_wallpaper() {
     # Restart services for theme changes
     pkill -f waybar || true
     pkill -f dunst || true
+    pkill -f swaync || true
     pkill -SIGUSR1 kitty || true
     
     # Apply wallpaper with transition
