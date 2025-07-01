@@ -226,7 +226,7 @@ backup_configs() {
     print_task "Creating backup directory: $backup_dir"
     mkdir -p "$backup_dir"
 
-    for config_dir in sway waybar kitty wofi; do
+    for config_dir in sway waybar kitty wofi dunst; do
         local src="$HOME/.config/$config_dir"
         if [ -e "$src" ]; then
             print_task "Backing up $src to $backup_dir/$config_dir ..."
@@ -250,7 +250,7 @@ setup_symlinks() {
     mkdir -p "$HOME/.config"
     mkdir -p "$HOME/.config/sway/walls"
     mkdir -p "$HOME/Videos/Screenrecorder"
-    for config_dir in sway waybar kitty wofi; do
+    for config_dir in sway waybar kitty wofi dunst; do
         if [ -L "$HOME/.config/$config_dir" ] || [ -d "$HOME/.config/$config_dir" ]; then
             print_task "Removing existing $config_dir from ~/.config ..."
             rm -rf "$HOME/.config/$config_dir"
